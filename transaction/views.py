@@ -15,15 +15,10 @@ def index(req):
   return JsonResponse(transactions.data, safe=False)
 
 def create(req):
-  transaction = models.Transaction.objects.create()
   transaction_input = json.loads(req.body)
-  for item in transaction_input['detail']:
-    item_input = item_models.Item.objects.filter(pk=item['item_id']).first()
-    detail = models.TransactionDetail.objects.create(
-      transaction=transaction,
-      item=item_input,
-      qty=item['qty'],
-      note=item['note']
-    )
-  serializer = serializers.TransactionSerializer(transaction)
-  return JsonResponse(serializer.data, safe=False)
+  transaction = serializers.TransactionSerializer(data=transaction_input)
+  if transaction.is_valid():
+    transaction.save()
+  else:
+    print(transaction.errors)
+  return JsonResponse(transaction.data, safe=False)
